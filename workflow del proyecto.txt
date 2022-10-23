@@ -1,5 +1,5 @@
 Datos del proyecto:
-Tipo de aplicacion --> API Rest
+Tipo de aplicacion --> API Rest 
 
 Estructura del proyecto:
     config/ --> datos de configuracion de la BBDD (Archivos de paso 1º y 2º)
