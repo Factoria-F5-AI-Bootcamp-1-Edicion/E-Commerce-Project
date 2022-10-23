@@ -1,0 +1,56 @@
+Datos del proyecto:
+Tipo de aplicacion --> API Rest
+
+Estructura del proyecto:
+    config/ --> datos de configuracion de la BBDD (Archivos de paso 1º y 2º)
+    models/ --> modelos/clases de nuestras entidades de datos (Archivos de paso 2º)
+    router/ --> Sistema de enrutado
+    schemas/ --> esquemas de validacion de las requests
+
+Tecnologias usadas :
+    BBDD : postgres con driver psycopg2
+    Framework : fastapi
+    Sistema ORM : sqlalchemy 
+    validacion : libreria pydantic
+    Constantes usadas por toda la aplicacion : libreria python-dotenv
+
+Flujo de trabajo en Git:
+    1º Rama API --> API Rest entregable
+    2º Rama developer --> Desarrollo de API Rest con enrutado
+    2º Rama BBDD --> Modelado de datos, configuracion de conexion BBDD  y creacion de clases para mapeo
+    3º Rama docs --> Generacion de documentacion del proyecto
+    4º gitignore --> gitignore.io : archivos .env, archivos de datos csv y excel y archivos
+
+Analisis de modelo de negocio:
+    Operaciones permitidas con nuestra API
+    Significado de cada entidad-tabla
+    Limpieza de los datos en csv
+    Analisis de cada atributo
+
+1º Externalizacion de datos de conexion de BBDD --> libreria python-dotenv y archivo config.py
+    a) Crear archivo .env --> Datos sensibles almacenados en constantes con formato CLAVE=valor
+    b) Creacion de clase Settings , cuyos atributos son los datos de la conexion a la BBDD --> Lectura de variables de entorno de archivo .env
+    c) creacion de URL de conexion para ser importada en archivo db_config.py
+
+2º Creacion de conexion de BBDD con O.R.M SQLAlchemy en archivo db_config.py
+    a) Creacion del engine : manejo de conexiones a BBDD y conversion del dialecto propio de BBDD 
+    b) Creacion de sesion : Ejecucion de transacciones sobre BBDD
+    c) Creacion de objeto de clase Base --> Todas las clases que la hereden seran mapeadas por el ORM de forma automatica
+
+3º) Modelado de datos de acuerdo a nuestra logica de negocio :
+    a) Diseño del modelo de datos mediante Esquema UML --> modelo relacional a traves diagrama entidad relacion, definiendo entidades y sus relaciones 
+    b) Documentacion de la logica de negocio y significado de cada atributo
+    c) Creacion del archivo models.py , donse se declaran las clases resultantes del paso a (las entidades del DER)
+    d) Clases - Entidades : __tablename__ , atributos  y metodos __init__, __repr__ y __str__. La relaciones que se establecen segun el DER son:
+        Relacion 1 - 1
+        Relacion 1-n : foreign key del lado de necesario
+        Relacion n-m : tabla intermedia con claves primarias de cada una de las tablas relacionadas
+    e) Mapeo objeto relacional a traves del ORM de las clases del paso b --> Se usa objeto Base y el mapeo se realiza a traves del engine creado en 2a) que contiene la conexion a la BBDD
+    f) importacion de datos de csv a tablas de BBDD:
+        1) Convertir csv a excel con libreria pandas
+        2) Tratamiento de datos nulos
+        3) Limpieza y transformaciones de datos en el archivo excel para que sean compatibles con tablas SQL (Formato de columnas excel == formato de columnas tablas de BBDD)
+        4) Insertar datos de archivos excel como registros de cada tabla -->ejecutar una sola vez el archivo load_data.py
+
+** HERRAMIENTA USADA PARA DER --> LUCIDCHART : https://lucid.app/lucidchart/42164ee5-5da6-4273-b8fc-bcc3253da97b/edit?viewport_loc=89%2C-339%2C2313%2C1033%2C0_0&invitationId=inv_9f050050-b484-4aa4-a22f-fab61eebddd7
+4º) Creacion de esquemas de validacion
