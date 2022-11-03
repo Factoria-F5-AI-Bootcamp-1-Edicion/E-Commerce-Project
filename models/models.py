@@ -12,13 +12,48 @@ class Customer(Base):
     __tablename__ = 'Customers'
     id_customer = Column(Integer, primary_key=True)
     full_name = Column(String, nullable=False)
-    email =Column(String, nullable=False)
+    email =Column(String, nullable=False, unique=True)
     billing_address = Column(String, nullable=False)
     default_shipping_address=Column(String, nullable=False)
     zip_code= Column(String, nullable=False)
     country= Column(String, nullable=False)
     phone =Column(String, nullable=False)
-    
+    order= relationship("Order",back_populates="customer")
+    def __init__(self, full_name,email,billing_address,default_shipping_address,zip_code,country,phone):
+        self.full_name = full_name
+        self.email = email
+        self.billing_address=billing_address
+        self.default_shipping_address= default_shipping_address
+        self.zip_code=zip_code
+        self.country=country
+        self.phone=phone
+    def __repr__(self):
+        return f'Customer({self.full_name}, {self.billing_address})'
+    def __str__(self):
+        return self.full_name
+
+
+# Creacion de tabla intermedia para relacion many to many de productos y orders , incluyendo los atributos de la relacion
+products_orders= Table('products_orders', Base.metadata,
+    Column('order_id', Integer, ForeignKey('Orders.id_order')),
+    Column('product_id', Integer, ForeignKey('Products.sku')),
+    Column('quantity',Integer,nullable=False),
+    Column('payment_method',String,nullable=False)
+)
+
+class Order(Base):
+    __tablename__ = 'Orders'
+    id_order = Column(Integer, primary_key=True)
+    customer_id = Column(Integer, ForeignKey("Customers.id_customer"),nullable=False)
+    total_ammount =Column(Float, nullable=False)
+    shipping_address = Column(String, nullable=False)
+    order_address=Column(String, nullable=False)
+    order_email= Column(String, nullable=False)
+    order_date= Column(Date, nullable=False)
+    order_status =Column(String, nullable=False)
+    # RElacion muchos a muchos con productos
+    customer= relationship("Customer",back_populates="order")
+    products = relationship('Product', secondary=products_orders,back_populates='order')
     def __init__(self, full_name,email,billing_address,default_shipping_address,zip_code,country,phone):
         self.full_name = full_name
         self.email = email
@@ -34,11 +69,12 @@ class Customer(Base):
 
 
 
-
 class Status(Base):
     __tablename__ = 'Status_options'
     id_status = Column(Integer, primary_key=True)
     status_type = Column(String, nullable=False)
+
+    products= relationship("Product",back_populates="status_product")
 
     def __init__(self,status_type):
         self.status_type=status_type
@@ -53,6 +89,7 @@ class Categories(Base):
     id_category = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     description = Column(String, nullable=False)
+    products= relationship("Product",back_populates="category_product")
 
     def __init__(self,name,description):
         self.name=name
@@ -69,6 +106,9 @@ class Memory(Base):
     memory_capacity = Column(Integer, nullable=False)
     capacity_type = Column(String, nullable=False)
 
+    #Relacion con clase Product - atributo memory_product
+    products= relationship("Product",back_populates="memory_product")
+
     def __init__(self,memory_capacity,capacity_type):
         self.memory_capacity=memory_capacity
         self.capacity_type= capacity_type
@@ -79,40 +119,10 @@ class Memory(Base):
         return self.memory_capacity
 
 
-# Creacion de tabla intermedia para relacion many to many de productos y orders
-products_orders= Table('products_orders', Base.metadata,
-    Column('order_id', Integer, ForeignKey('Orders.id_order')),
-    Column('product_id', Integer, ForeignKey('Products.sku'))
-)
-
-class Order(Base):
-    __tablename__ = 'Orders'
-    id_order = Column(Integer, primary_key=True)
-    customer_id = Column(Integer, ForeignKey("Customers.id_customer"),nullable=False)
-    total_ammount =Column(Float, nullable=False)
-    shipping_address = Column(String, nullable=False)
-    order_address=Column(String, nullable=False)
-    order_email= Column(String, nullable=False)
-    order_date= Column(Date, nullable=False)
-    order_status =Column(String, nullable=False)
-    # RElacion muchos a muchos con productos
-    products = relationship('Product', secondary=products_orders)
-    def __init__(self, full_name,email,billing_address,default_shipping_address,zip_code,country,phone):
-        self.full_name = full_name
-        self.email = email
-        self.billing_address=billing_address
-        self.default_shipping_address= default_shipping_address
-        self.zip_code=zip_code
-        self.country=country
-        self.phone=phone
-    def __repr__(self):
-        return f'Customer({self.full_name}, {self.billing_address})'
-    def __str__(self):
-        return self.full_name
 
 class Product(Base):
     __tablename__ = 'Products'
-    sku = Column(Integer, primary_key=True)
+    sku = Column(Integer, primary_key=True,autoincrement=True)
     name= Column(String, nullable=False)
     price= Column(Float, nullable=False)
     description=Column(String, nullable=False)
@@ -127,12 +137,18 @@ class Product(Base):
     seo_desc= Column(String, nullable=False)
     color = Column(String, nullable=False)
 
-    # Foreign Keys
+    # Foreign Keys --> Relacion 1 a muchos
     status_id = Column(Integer, ForeignKey("Status_options.id_status"),nullable=False)
     category_id = Column(Integer, ForeignKey("Product_categories.id_category"),nullable=False)
     memory_id = Column(Integer, ForeignKey("Memory_options.id_memory"),nullable=False)
-
-    def __init__(self,name,price,description,track_inventory,qty,weight,height,width,length,image_url,seo_title,seo_desc,color,status_id,category_id,memory_id):
+    status_product =relationship("Status", back_populates="products")
+    memory_product =relationship("Memory", back_populates="products")
+    category_product = relationship("Categories", back_populates="products")
+    # Relacion many to may
+    order = relationship('Order', secondary=products_orders,back_populates='products')
+    
+    def __init__(self,sku,name,price,description,track_inventory,qty,weight,height,width,length,image_url,seo_title,seo_desc,color,status_id,category_id,memory_id):
+        self.sku=sku
         self.name= name
         self.price= price
         self.description = description
